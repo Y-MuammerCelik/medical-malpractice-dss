@@ -1,0 +1,34 @@
+# ===========================================================================
+# Tıbbi Hasar Analizi ve Malpraktis Tespiti Sistemi — Bağımlılıklar
+# ===========================================================================
+
+# ── Çekirdek ──────────────────────────────────────────────────────────────
+Django==4.2.13
+python-decouple==3.8            # .env dosya yönetimi
+
+# ── REST API ──────────────────────────────────────────────────────────────
+djangorestframework==3.15.2
+django-filter==24.2
+django-cors-headers==4.4.0
+
+# ── Veri Analizi (Kural Motoru) ───────────────────────────────────────────
+pandas==2.2.2
+numpy==1.26.4
+
+# ── Geliştirme Araçları ───────────────────────────────────────────────────
+django-debug-toolbar==4.4.6
+ipython==8.26.0                 # Django shell geliştirme kolaylığı
+
+# ── Üretim ────────────────────────────────────────────────────────────────
+gunicorn==22.0.0
+whitenoise==6.7.0               # Statik dosya sunumu
+
+# ── NLP (İleride kullanılacak) ────────────────────────────────────────────
+# spacy==3.7.5
+# transformers==4.41.2
+# torch==2.3.1
+
+# ── Test ──────────────────────────────────────────────────────────────────
+pytest==8.2.2
+pytest-django==4.8.0
+factory-boy==3.3.0              # Test verisi üretimi

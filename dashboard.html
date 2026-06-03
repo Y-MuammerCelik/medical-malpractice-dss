@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>MalpraktisDSS — Tıbbi Hasar Analizi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0a0f1e;--bg2:#111827;--bg3:#1a2235;--bg4:#0d1526;
+      --border:rgba(255,255,255,.08);
+      --text:#e2e8f0;--muted:#64748b;
+      --accent:#3b82f6;--accent2:#6366f1;
+      --green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    /* ── NAV ── */
+    nav{background:rgba(17,24,39,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+        padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;
+        position:sticky;top:0;z-index:100;}
+    .nav-brand{display:flex;align-items:center;gap:12px;}
+    .nav-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+              display:flex;align-items:center;justify-content:center;font-size:20px;}
+    .nav-title{font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#60a5fa,#a78bfa);
+               -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .nav-sub{font-size:.72rem;color:var(--muted);}
+    .nav-right{display:flex;align-items:center;gap:1rem;}
+    .status-pill{display:flex;align-items:center;gap:8px;font-size:.82rem;}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+    /* ── TABS ── */
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;}
+    .tab{padding:6px 16px;border-radius:7px;font-size:.82rem;font-weight:600;cursor:pointer;
+         border:none;background:transparent;color:var(--muted);transition:all .2s;}
+    .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+    .tab:hover:not(.active){color:var(--text);}
+
+    /* ── LAYOUT ── */
+    .container{max-width:1400px;margin:0 auto;padding:2rem;}
+    .page{display:none;}.page.active{display:block;}
+
+    /* ── STAT CARDS ── */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1rem;margin-bottom:2rem;}
+    .stat{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.4rem;
+          position:relative;overflow:hidden;transition:transform .2s,border-color .2s;}
+    .stat:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.15);}
+    .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+    .stat.blue::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+    .stat.green::before{background:linear-gradient(90deg,var(--green),#34d399);}
+    .stat.yellow::before{background:linear-gradient(90deg,var(--yellow),#fbbf24);}
+    .stat.orange::before{background:linear-gradient(90deg,var(--orange),var(--yellow));}
+    .stat.red::before{background:linear-gradient(90deg,var(--red),#f43f5e);}
+    .stat-icon{font-size:1.8rem;margin-bottom:.6rem;}
+    .stat-num{font-size:2.4rem;font-weight:800;line-height:1;}
+    .stat-label{color:var(--muted);font-size:.82rem;margin-top:.25rem;}
+
+    /* ── CARD ── */
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.5rem;}
+    .card-head{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);
+               display:flex;align-items:center;justify-content:space-between;}
+    .card-title{font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;}
+
+    /* ── TWO COL ── */
+    .two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+    @media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+
+    /* ── BTN ── */
+    .btn{padding:7px 14px;border-radius:9px;font-size:.82rem;font-weight:600;border:none;
+         cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;
+         background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(59,130,246,.4);}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
+    .btn-green{background:linear-gradient(135deg,var(--green),#059669);}
+    .btn-green:hover{box-shadow:0 4px 15px rgba(16,185,129,.4);}
+
+    /* ── PATIENT ITEM ── */
+    .p-item{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);
+            display:flex;align-items:center;gap:1rem;transition:background .15s;}
+    .p-item:last-child{border-bottom:none;}
+    .p-item:hover{background:rgba(255,255,255,.03);}
+    .p-avatar{width:42px;height:42px;border-radius:12px;flex-shrink:0;
+              display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+    .p-info{flex:1;min-width:0;}
+    .p-name{font-weight:600;font-size:.95rem;}
+    .p-meta{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .score-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+    .score-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+    .score-fill{height:100%;border-radius:3px;}
+    .score-pct{font-size:.78rem;font-weight:700;width:38px;text-align:right;}
+
+    /* ── BADGES ── */
+    .badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap;}
+    .b-none     {background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);}
+    .b-low      {background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3);}
+    .b-moderate {background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);}
+    .b-high     {background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.3);}
+    .b-confirmed{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+    .b-purple   {background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.3);}
+
+    /* ── DONUT ── */
+    .donut-wrap{display:flex;align-items:center;justify-content:center;gap:2rem;padding:1.5rem;flex-wrap:wrap;}
+    svg.donut{width:150px;height:150px;transform:rotate(-90deg);}
+    .legend{display:flex;flex-direction:column;gap:10px;}
+    .leg-item{display:flex;align-items:center;gap:10px;font-size:.85rem;}
+    .leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+    /* ── DEVIATION ── */
+    .dev-item{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);
+              display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:start;}
+    .dev-item:last-child{border-bottom:none;}
+    .sev-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;
+              justify-content:center;font-size:1rem;flex-shrink:0;margin-top:2px;}
+    .sev-c{background:rgba(239,68,68,.15);}
+    .sev-w{background:rgba(245,158,11,.15);}
+    .sev-i{background:rgba(59,130,246,.15);}
+    .dev-desc{font-size:.84rem;line-height:1.4;}
+    .dev-meta{font-size:.73rem;color:var(--muted);margin-top:3px;}
+    .rule-chip{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.3);
+               padding:3px 8px;border-radius:6px;font-size:.7rem;font-family:'Courier New',monospace;white-space:nowrap;}
+
+    /* ── NLP PANEL ── */
+    .nlp-area{
+      width:100%;min-height:200px;background:var(--bg4);border:2px dashed var(--border);
+      border-radius:12px;padding:1.2rem;font-family:'Inter',sans-serif;font-size:.88rem;
+      color:var(--text);resize:vertical;line-height:1.7;
+      transition:border-color .2s;outline:none;
+    }
+    .nlp-area:focus{border-color:var(--accent);}
+    .nlp-area::placeholder{color:var(--muted);}
+
+    .nlp-samples{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+    .sample-btn{padding:5px 12px;border-radius:8px;font-size:.75rem;cursor:pointer;border:1px solid var(--border);
+                background:rgba(255,255,255,.04);color:var(--muted);transition:all .2s;}
+    .sample-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.08);}
+
+    .nlp-result{margin-top:1.5rem;display:none;}
+    .nlp-result.show{display:block;}
+
+    .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem;}
+    .result-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+    .result-card-title{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem;}
+    .result-card-val{font-size:.9rem;font-weight:600;}
+
+    .tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:.4rem;}
+    .tag{padding:3px 9px;border-radius:6px;font-size:.75rem;
+         background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.2);}
+    .tag.med{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.2);}
+    .tag.proc{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.2);}
+    .tag.warn{background:rgba(239,68,68,.12);color:#f87171;border-color:rgba(239,68,68,.2);}
+
+    .confidence-bar-bg{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:.5rem;}
+    .confidence-bar{height:100%;border-radius:4px;transition:width .8s ease;}
+
+    .rule-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-top:1rem;}
+    .rule-box-title{font-size:.78rem;color:var(--muted);margin-bottom:.5rem;}
+
+    /* ── EMPTY / LOADING ── */
+    .empty{text-align:center;padding:3rem;color:var(--muted);font-size:.9rem;}
+    .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.2);
+             border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading{text-align:center;padding:2.5rem;color:var(--muted);}
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;
+           background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+           padding:.9rem 1.4rem;font-size:.88rem;transform:translateY(80px);
+           opacity:0;transition:all .3s;max-width:340px;}
+    #toast.show{transform:translateY(0);opacity:1;}
+
+    /* ── DIVIDER ── */
+    .section-sep{border:none;border-top:1px solid var(--border);margin:1.5rem 0;}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">🏥</div>
+    <div>
+      <div class="nav-title">MalpraktisDSS</div>
+      <div class="nav-sub">Kural Tabanlı Karar Destek Sistemi</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="tabs">
+      <button class="tab active" onclick="switchPage('dashboard')">📊 Dashboard</button>
+      <button class="tab" onclick="switchPage('nlp')">🔬 Belge Analizi</button>
+    </div>
+    <div class="status-pill">
+      <div class="dot" id="dotEl"></div>
+      <span id="apiStatus">Bağlanıyor...</span>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ══════════════════════════════════════════════════════════
+       SAYFA 1: DASHBOARD
+  ══════════════════════════════════════════════════════════ -->
+  <div class="page active" id="page-dashboard">
+
+    <div class="stats">
+      <div class="stat blue"><div class="stat-icon">👥</div><div class="stat-num" id="sTotal">—</div><div class="stat-label">Toplam Değerlendirme</div></div>
+      <div class="stat green"><div class="stat-icon">✅</div><div class="stat-num" id="sNone">—</div><div class="stat-label">Risk Yok</div></div>
+      <div class="stat yellow"><div class="stat-icon">⚠️</div><div class="stat-num" id="sMod">—</div><div class="stat-label">Orta Risk</div></div>
+      <div class="stat orange"><div class="stat-icon">🟠</div><div class="stat-num" id="sHigh">—</div><div class="stat-label">Yüksek Risk</div></div>
+      <div class="stat red"><div class="stat-icon">🚨</div><div class="stat-num" id="sConf">—</div><div class="stat-label">Malpraktis Tespit</div></div>
+      <div class="stat blue"><div class="stat-icon">🔍</div><div class="stat-num" id="sDev">—</div><div class="stat-label">Toplam Sapma</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head">
+          <span class="card-title">🧑‍⚕️ Hasta Risk Skorları</span>
+          <button class="btn" id="runBtn" onclick="runAll()">▶ Tümünü Analiz Et</button>
+        </div>
+        <div id="patientList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head"><span class="card-title">📊 Risk Dağılımı</span></div>
+        <div class="donut-wrap">
+          <svg class="donut" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="14"/>
+            <circle id="dn-none"      cx="50" cy="50" r="38" fill="none" stroke="#10b981" stroke-width="14" stroke-dasharray="0 238.76" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="dn-low"       cx="50" cy="50" r="38" fill="none" stroke="#3b82f6" stroke-width="14" stroke-dasharray="0 238.76" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="dn-moderate"  cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" stroke-width="14" stroke-dasharray="0 238.76" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="dn-high"      cx="50" cy="50" r="38" fill="none" stroke="#f97316" stroke-width="14" stroke-dasharray="0 238.76" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="dn-confirmed" cx="50" cy="50" r="38" fill="none" stroke="#ef4444" stroke-width="14" stroke-dasharray="0 238.76" stroke-linecap="round" style="transition:stroke-dasharray .8s ease"/>
+          </svg>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">🔍 Tespit Edilen Sapmalar</span>
+        <span id="devCount" style="font-size:.8rem;color:var(--muted)"></span>
+      </div>
+      <div id="devList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="card-title">⚖️ Malpraktis Değerlendirme Özeti</span></div>
+      <div id="assList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+  </div><!-- /page-dashboard -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SAYFA 2: NLP BELGE ANALİZİ
+  ══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-nlp">
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">🔬 Klinik Belge NLP Analizi</span>
+        <span class="badge b-purple">Yapay Zeka Destekli</span>
+      </div>
+      <div style="padding:1.5rem">
+
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:1rem">
+          Epikriz, taburcu özeti veya klinik rapor metnini aşağıya yapıştırın.
+          Sistem ICD-10 kodunu, uygulanan ilaçları, prosedürleri ve yatış süresini otomatik olarak çıkaracak.
+        </p>
+
+        <!-- Örnek metinler -->
+        <div class="nlp-samples">
+          <span style="font-size:.75rem;color:var(--muted);align-self:center;margin-right:4px">Örnek yükle:</span>
+          <button class="sample-btn" onclick="loadSample('pneumonia')">🫁 Pnömoni (Uyumlu)</button>
+          <button class="sample-btn" onclick="loadSample('stemi')">❤️ STEMI (Malpraktis)</button>
+          <button class="sample-btn" onclick="loadSample('lumbar')">🦴 Disk Hernisi</button>
+        </div>
+
+        <textarea class="nlp-area" id="nlpText"
+          placeholder="Buraya epikriz veya klinik rapor metnini yapıştırın...
+
+Örnek:
+Hasta Adı: Ahmet Yılmaz
+Yaş: 65
+Teşhis: Pnömoni (J18.9)
+Yatış Tarihi: 10.05.2024
+Taburcu Tarihi: 18.05.2024
+Yatış Süresi: 8 gün
+Uygulanan İlaçlar: Amoksisilin-klavulanat, Azitromisin, Parasetamol
+Prosedürler: Akciğer grafisi, Kan kültürü, SpO2 monitorizasyonu"></textarea>
+
+        <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-green" id="nlpBtn" onclick="analyzeDoc()">
+            🔬 Analiz Et
+          </button>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;cursor:pointer">
+            <input type="checkbox" id="runEngine" style="width:16px;height:16px;accent-color:var(--accent)"/>
+            Protokol kontrolü de yap
+          </label>
+          <button class="btn" style="background:rgba(255,255,255,.06);margin-left:auto" onclick="clearNlp()">
+            🗑 Temizle
+          </button>
+        </div>
+
+        <!-- SONUÇ ALANI -->
+        <div class="nlp-result" id="nlpResult">
+          <hr class="section-sep"/>
+
+          <!-- Güven & ICD -->
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-card-title">🏷 Tespit Edilen ICD-10</div>
+              <div class="result-card-val" id="rIcd">—</div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:4px" id="rDiag"></div>
+            </div>
+            <div class="result-card">
+              <div class="result-card-title">⏱ Yatış Süresi</div>
+              <div class="result-card-val" id="rDur">—</div>
+            </div>
+            <div class="result-card">
+              <div class="result-card-title">👤 Hasta</div>
+              <div class="result-card-val" id="rPatient">—</div>
+            </div>
+            <div class="result-card">
+              <div class="result-card-title">📈 Analiz Güveni</div>
+              <div class="result-card-val" id="rConf">—</div>
+              <div class="confidence-bar-bg"><div class="confidence-bar" id="rConfBar" style="width:0;background:var(--green)"></div></div>
+            </div>
+          </div>
+
+          <!-- İlaçlar -->
+          <div class="result-card" style="margin-bottom:1rem">
+            <div class="result-card-title">💊 Tespit Edilen İlaçlar</div>
+            <div class="tag-list" id="rMeds"><span style="color:var(--muted);font-size:.82rem">Tespit edilemedi</span></div>
+          </div>
+
+          <!-- Prosedürler -->
+          <div class="result-card" style="margin-bottom:1rem">
+            <div class="result-card-title">🔧 Tespit Edilen Prosedürler</div>
+            <div class="tag-list" id="rProcs"><span style="color:var(--muted);font-size:.82rem">Tespit edilemedi</span></div>
+          </div>
+
+          <!-- Uyarılar -->
+          <div id="rWarnings"></div>
+
+          <!-- Protokol sonucu -->
+          <div class="rule-box" id="rRuleBox" style="display:none">
+            <div class="rule-box-title">⚖️ Protokol Kontrol Sonucu</div>
+            <div id="rRuleContent"></div>
+          </div>
+        </div><!-- /nlpResult -->
+      </div>
+    </div>
+
+  </div><!-- /page-nlp -->
+
+</div><!-- /container -->
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://127.0.0.1:8000/api/v1';
+
+/* ─── SAYFA GEÇİŞİ ────────────────────────────────────── */
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ─── YARDIMCILAR ─────────────────────────────────────── */
+const RISK = {
+  NONE:      {label:'Risk Yok',   cls:'b-none',      color:'#10b981',icon:'✅'},
+  LOW:       {label:'Düşük Risk', cls:'b-low',       color:'#3b82f6',icon:'🔵'},
+  MODERATE:  {label:'Orta Risk',  cls:'b-moderate',  color:'#f59e0b',icon:'⚠️'},
+  HIGH:      {label:'Yüksek Risk',cls:'b-high',      color:'#f97316',icon:'🟠'},
+  CONFIRMED: {label:'Malpraktis', cls:'b-confirmed', color:'#ef4444',icon:'🚨'},
+};
+const scoreColor = s => s>=80?'#10b981':s>=60?'#3b82f6':s>=40?'#f59e0b':s>=20?'#f97316':'#ef4444';
+const fmtDate = d => d ? new Date(d).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+function toast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = (ok?'✅ ':'❌ ') + msg;
+  t.style.borderColor = ok?'rgba(16,185,129,.4)':'rgba(239,68,68,.4)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+async function get(url) {
+  const r = await fetch(url + (url.includes('?')?'&':'?') + 'format=json');
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+/* ─── DASHBOARD YÜKLE ─────────────────────────────────── */
+async function load() {
+  try {
+    const [assData, devData] = await Promise.all([
+      get(`${API}/analysis/assessments/`),
+      get(`${API}/analysis/deviations/`),
+    ]);
+    const assessments = Array.isArray(assData) ? assData : (assData.results||[]);
+    const deviations  = Array.isArray(devData)  ? devData  : (devData.results||[]);
+
+    document.getElementById('apiStatus').textContent = 'API Bağlı ✓';
+    document.getElementById('dotEl').style.background = '#10b981';
+
+    renderStats(assessments, deviations);
+    renderPatients(assessments);
+    renderDonut(assessments);
+    renderDeviations(deviations);
+    renderAssessments(assessments);
+  } catch(e) {
+    document.getElementById('apiStatus').textContent = 'Bağlantı Hatası';
+    document.getElementById('dotEl').style.background = '#ef4444';
+    ['patientList','devList','assList'].forEach(id =>
+      document.getElementById(id).innerHTML = `<div class="empty">❌ ${e.message}</div>`
+    );
+  }
+}
+
+function renderStats(ass, devs) {
+  const c={NONE:0,LOW:0,MODERATE:0,HIGH:0,CONFIRMED:0};
+  ass.forEach(a=>{if(c[a.risk_level]!==undefined)c[a.risk_level]++;});
+  document.getElementById('sTotal').textContent = ass.length;
+  document.getElementById('sNone').textContent  = c.NONE;
+  document.getElementById('sMod').textContent   = c.LOW+c.MODERATE;
+  document.getElementById('sHigh').textContent  = c.HIGH;
+  document.getElementById('sConf').textContent  = c.CONFIRMED;
+  document.getElementById('sDev').textContent   = devs.length;
+}
+
+function renderPatients(assessments) {
+  const el = document.getElementById('patientList');
+  if (!assessments.length){el.innerHTML='<div class="empty">Henüz değerlendirme yok.<br>▶ Analiz Et butonuna bas.</div>';return;}
+  el.innerHTML = assessments.map(a=>{
+    const r=RISK[a.risk_level]||RISK.NONE;
+    const score=+(a.overall_compliance_score??100).toFixed(1);
+    const sc=scoreColor(score);
+    const dc=a.deviation_logs?a.deviation_logs.length:0;
+    return `<div class="p-item">
+      <div class="p-avatar" style="background:${r.color}22;color:${r.color}">${r.icon}</div>
+      <div class="p-info">
+        <div class="p-name">Yatış #${a.admission}</div>
+        <div class="p-meta">${dc} sapma tespit edildi</div>
+        <div class="score-row">
+          <div class="score-bg"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div>
+          <div class="score-pct" style="color:${sc}">${score}%</div>
+        </div>
+      </div>
+      <span class="badge ${r.cls}">${r.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDonut(assessments) {
+  const total=assessments.length||1;
+  const c={NONE:0,LOW:0,MODERATE:0,HIGH:0,CONFIRMED:0};
+  assessments.forEach(a=>{if(c[a.risk_level]!==undefined)c[a.risk_level]++;});
+  const circ=238.76; let offset=0;
+  ['NONE','LOW','MODERATE','HIGH','CONFIRMED'].forEach(k=>{
+    const dash=(c[k]/total)*circ;
+    const el=document.getElementById('dn-'+k.toLowerCase());
+    if(el){el.style.strokeDasharray=`${dash} ${circ-dash}`;el.style.strokeDashoffset=-offset;}
+    offset+=dash;
+  });
+  document.getElementById('legend').innerHTML=
+    Object.entries(RISK).map(([k,r])=>
+      `<div class="leg-item"><div class="leg-dot" style="background:${r.color}"></div>
+       <span>${r.label}: <strong>${c[k]}</strong></span></div>`
+    ).join('');
+}
+
+function renderDeviations(deviations) {
+  document.getElementById('devCount').textContent=`${deviations.length} kayıt`;
+  const el=document.getElementById('devList');
+  if(!deviations.length){el.innerHTML='<div class="empty">🎉 Hiç sapma tespit edilmedi!</div>';return;}
+  el.innerHTML=deviations.map(d=>{
+    const sev=d.severity;
+    const sc=sev==='CRITICAL'?'sev-c':sev==='WARNING'?'sev-w':'sev-i';
+    const si=sev==='CRITICAL'?'🔴':sev==='WARNING'?'🟡':'🔵';
+    const bc=sev==='CRITICAL'?'b-confirmed':sev==='WARNING'?'b-moderate':'b-low';
+    return `<div class="dev-item">
+      <div class="sev-icon ${sc}">${si}</div>
+      <div><div class="dev-desc">${d.description||'—'}</div>
+        <div class="dev-meta">Yatış #${d.admission} · ${d.deviation_type_display||d.deviation_type} · ${fmtDate(d.detected_at)}</div>
+      </div>
+      <span class="badge ${bc}">${d.severity_display||sev}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderAssessments(assessments) {
+  const el=document.getElementById('assList');
+  if(!assessments.length){el.innerHTML='<div class="empty">Henüz değerlendirme yok.</div>';return;}
+  el.innerHTML=assessments.map(a=>{
+    const r=RISK[a.risk_level]||RISK.NONE;
+    const score=+(a.overall_compliance_score??100).toFixed(1);
+    const sc=scoreColor(score);
+    const summary=(a.automated_summary||'').split('\n').slice(0,2).join(' · ');
+    return `<div class="p-item">
+      <div class="p-avatar" style="background:${r.color}22;color:${r.color};font-size:1.2rem">${r.icon}</div>
+      <div class="p-info">
+        <div class="p-name">Yatış #${a.admission} — Değerlendirme #${a.id}</div>
+        <div class="p-meta" style="margin-top:3px">${summary||'Özet yok'}</div>
+        <div class="score-row">
+          <div class="score-bg"><div class="score-fill" style="width:${score}%;background:${sc}"></div></div>
+          <div class="score-pct" style="color:${sc}">${score}%</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <span class="badge ${r.cls}">${r.label}</span>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:5px">${a.finalized?'🔒 Onaylandı':'⏳ İncelemede'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function runAll() {
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Çalışıyor...';
+  try {
+    const admData=await get(`${API}/admissions/`);
+    const admissions=Array.isArray(admData)?admData:(admData.results||[]);
+    let done=0;
+    for(const adm of admissions){
+      await fetch(`${API}/analysis/run/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admission_id:adm.id})});
+      btn.innerHTML=`<span class="spinner"></span> ${++done}/${admissions.length}...`;
+    }
+    toast(`${done} yatış analiz edildi!`);
+    await load();
+  } catch(e){toast('Hata: '+e.message,false);}
+  btn.disabled=false; btn.innerHTML='▶ Tümünü Analiz Et';
+}
+
+/* ─── NLP ANALİZİ ─────────────────────────────────────── */
+
+const SAMPLES = {
+  pneumonia: `Hasta Adı: Fatma Kaya
+Yaş: 58
+Teşhis: Toplum Kökenli Pnömoni (J18.9)
+Yatış Tarihi: 05.03.2024
+Taburcu Tarihi: 13.03.2024
+Yatış Süresi: 8 gün
+
+Uygulanan İlaçlar: Amoksisilin-klavulanat 1g 2x1 IV, Azitromisin 500mg 1x1 PO, Parasetamol 500mg 3x1 PO, Serum fizyolojik 1000ml IV.
+Prosedürler: Akciğer grafisi çekildi, Kan kültürü alındı, SpO2 monitorizasyonu uygulandı.
+Notlar: Hasta protokole uygun tedavi ile iyileşme gösterdi. Taburculuk kararı verildi.`,
+
+  stemi: `Hasta Adı: Hasan Erdoğan
+Yaş: 72
+Teşhis: Akut Miyokard Enfarktüsü - STEMI (I21.9)
+Başvuru Tarihi: 12.04.2024
+Yatış Süresi: 12 gün
+
+Uygulanan İlaçlar: Enoksaparin 80mg SC, Metoprolol 50mg, Atorvastatin 80mg, Ramipril 5mg.
+Prosedürler: 12 derivasyonlu EKG çekildi, Primer PKG (anjiyografi) uygulandı.
+Notlar: Hastaya aspirin ve klopidogrel yükleme dozu uygulanmadı. Troponin seri ölçümü yapılmadı. Ekokardiyografi çekilmedi. İlk başvuruda 360 dakikalık gecikme yaşandı.`,
+
+  lumbar: `Hasta Adı: Mustafa Çelik
+Yaş: 45
+Teşhis: Lomber Disk Hernisi (M51.1)
+Yatış Tarihi: 20.01.2024
+Taburcu Tarihi: 27.01.2024
+Yatış Süresi: 7 gün
+
+Uygulanan İlaçlar: İbuprofen 400mg 3x1, Metilprednizolon 16mg, Tramadol 50mg.
+Prosedürler: MR görüntüleme yapıldı, Röntgen çekildi, Fizyoterapi uygulandı.
+Notlar: Konservatif tedavi uygulandı.`
+};
+
+function loadSample(key) {
+  document.getElementById('nlpText').value = SAMPLES[key];
+}
+
+function clearNlp() {
+  document.getElementById('nlpText').value = '';
+  document.getElementById('nlpResult').classList.remove('show');
+}
+
+async function analyzeDoc() {
+  const text = document.getElementById('nlpText').value.trim();
+  const runEngine = document.getElementById('runEngine').checked;
+  const btn = document.getElementById('nlpBtn');
+
+  if (!text) { toast('Lütfen metin girin.', false); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analiz ediliyor...';
+
+  try {
+    const res = await fetch(`${API}/analysis/analyze-document/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, run_rule_engine: runEngine})
+    });
+    const data = await res.json();
+    if (!res.ok) { toast(data.detail || 'Hata oluştu.', false); return; }
+    renderNlpResult(data);
+    toast('NLP analizi tamamlandı!');
+  } catch(e) {
+    toast('Bağlantı hatası: ' + e.message, false);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔬 Analiz Et';
+}
+
+function renderNlpResult(data) {
+  const ex = data.extracted;
+  const resultEl = document.getElementById('nlpResult');
+  resultEl.classList.add('show');
+
+  // ICD
+  const icdEl = document.getElementById('rIcd');
+  if (ex.matched_icd) {
+    icdEl.innerHTML = `<span class="badge b-purple" style="font-size:.88rem">${ex.matched_icd}</span>`;
+  } else if (ex.icd_codes.length) {
+    icdEl.innerHTML = ex.icd_codes.map(c => `<span class="badge b-low" style="font-size:.88rem;margin-right:4px">${c}</span>`).join('');
+  } else {
+    icdEl.innerHTML = '<span style="color:var(--muted)">Tespit edilemedi</span>';
+  }
+  document.getElementById('rDiag').textContent = ex.diagnosis_text || '';
+
+  // Süre
+  document.getElementById('rDur').textContent = ex.duration_days ? `${ex.duration_days} gün` : '—';
+
+  // Hasta
+  const patParts = [];
+  if (ex.patient_name) patParts.push(ex.patient_name);
+  if (ex.patient_age)  patParts.push(`${ex.patient_age} yaş`);
+  document.getElementById('rPatient').textContent = patParts.join(' · ') || '—';
+
+  // Güven
+  const conf = data.confidence;
+  const confColor = conf>=70?'#10b981':conf>=40?'#f59e0b':'#ef4444';
+  document.getElementById('rConf').innerHTML =
+    `<span style="color:${confColor};font-size:1.3rem;font-weight:800">${conf}%</span>
+     <span style="font-size:.78rem;color:var(--muted);margin-left:8px">${data.confidence_label}</span>`;
+  document.getElementById('rConfBar').style.width = conf + '%';
+  document.getElementById('rConfBar').style.background = confColor;
+
+  // İlaçlar
+  const medsEl = document.getElementById('rMeds');
+  if (ex.medications.length) {
+    medsEl.innerHTML = ex.medications.map(m => `<span class="tag med">💊 ${m}</span>`).join('');
+  } else {
+    medsEl.innerHTML = '<span style="color:var(--muted);font-size:.82rem">Tespit edilemedi</span>';
+  }
+
+  // Prosedürler
+  const procsEl = document.getElementById('rProcs');
+  if (ex.procedures.length) {
+    procsEl.innerHTML = ex.procedures.map(p => `<span class="tag proc">🔧 ${p}</span>`).join('');
+  } else {
+    procsEl.innerHTML = '<span style="color:var(--muted);font-size:.82rem">Tespit edilemedi</span>';
+  }
+
+  // Uyarılar
+  const warnEl = document.getElementById('rWarnings');
+  if (data.warnings.length) {
+    warnEl.innerHTML = `<div class="result-card" style="margin-bottom:1rem;border-color:rgba(239,68,68,.2)">
+      <div class="result-card-title" style="color:#f87171">⚠️ Uyarılar</div>
+      <div class="tag-list">${data.warnings.map(w=>`<span class="tag warn">${w}</span>`).join('')}</div>
+    </div>`;
+  } else {
+    warnEl.innerHTML = '';
+  }
+
+  // Protokol sonucu
+  const ruleBox = document.getElementById('rRuleBox');
+  if (data.rule_engine_result) {
+    ruleBox.style.display = 'block';
+    const rr = data.rule_engine_result;
+    if (rr.error) {
+      document.getElementById('rRuleContent').innerHTML = `<span style="color:var(--red)">${rr.error}</span>`;
+    } else if (rr.icd_found) {
+      document.getElementById('rRuleContent').innerHTML = `
+        <div style="font-size:.88rem"><strong>${rr.icd_found}</strong> — ${rr.icd_name}</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:4px">${rr.protocol_count} protokol mevcut. ${rr.message}</div>`;
+    } else {
+      document.getElementById('rRuleContent').innerHTML = `<span style="color:var(--muted);font-size:.85rem">${rr.message}</span>`;
+    }
+  } else {
+    ruleBox.style.display = 'none';
+  }
+}
+
+/* boot */
+load();
+</script>
+</body>
+</html>
