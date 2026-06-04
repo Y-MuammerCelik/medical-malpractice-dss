@@ -96,9 +96,21 @@ python backend/manage.py runserver
 
 | Adres | Açıklama |
 |-------|----------|
-| `http://127.0.0.1:8000/` | Dashboard |
-| `http://127.0.0.1:8000/admin/` | Admin Panel (`admin` / `Admin1234!`) |
+| `http://127.0.0.1:8000/` | Dashboard (giriş gerekli) |
+| `http://127.0.0.1:8000/login/` | Giriş Sayfası |
+| `http://127.0.0.1:8000/admin/` | Admin Panel |
 | `http://127.0.0.1:8000/api/v1/` | REST API |
+
+### 🔑 Test Kullanıcıları
+
+> [!NOTE]
+> Sistemi test etmek için aşağıdaki hazır kullanıcılardan birini kullanabilirsiniz.
+
+| Kullanıcı | Kullanıcı Adı | Şifre | Rol |
+|-----------|--------------|-------|-----|
+| 👨‍🎓 Öğrenci (Muammer Çelik) | `muammer` | `Muammer123!` | Standart Kullanıcı |
+| 👨‍🏫 Değerlendirici (Hüseyin Hoca) | `huseyinhoca` | `Hoca1234!` | Staff / Değerlendirici |
+| 🛡 Sistem Yöneticisi | `admin` | `Admin1234!` | Süper Kullanıcı |
 
 ---
 
