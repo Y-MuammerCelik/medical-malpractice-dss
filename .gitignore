@@ -16,3 +16,7 @@ dist/
 .idea/
 .vscode/
 *.egg-info/
+
+# Kisisel Dosyalar
+GitHub_QR_Kodu.png
+Proje_Final_Raporu.md
