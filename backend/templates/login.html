@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş Yap — MalpraktisDSS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: rgba(255,255,255,0.08);
+      --accent: #7c3aed;
+      --accent2: #6d28d9;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --error: #ff6b6b;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Arka plan dekor */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%);
+      top: -150px; left: -150px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(109,40,217,0.12) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      animation: slideUp 0.5s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .logo-text h1 { font-size: 1.3rem; font-weight: 700; }
+    .logo-text p  { font-size: .75rem; color: var(--muted); }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: .4rem;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: .45rem;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      color: var(--text);
+      font-size: .95rem;
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+    }
+
+    .error-list {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      margin-bottom: 1.2rem;
+      font-size: .85rem;
+      color: var(--error);
+    }
+    .error-list ul { padding-left: 1rem; }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: .85rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+      margin-top: .5rem;
+    }
+    .btn:hover  { opacity: .9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: .78rem;
+      margin-top: 1.5rem;
+    }
+    .footer-note a { color: var(--accent); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    <div class="logo-text">
+      <h1>MalpraktisDSS</h1>
+      <p>Tıbbi Karar Destek Sistemi</p>
+    </div>
+  </div>
+
+  <h2>Sisteme Giriş</h2>
+  <p class="subtitle">Devam etmek için kullanıcı bilgilerinizi girin</p>
+
+  {% if form.errors %}
+  <div class="error-list">
+    ⚠️ Kullanıcı adı veya şifre hatalı. Lütfen tekrar deneyin.
+  </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <div class="form-group">
+      <label for="id_username">👤 Kullanıcı Adı</label>
+      <input type="text" id="id_username" name="username"
+             placeholder="Kullanıcı adınızı girin" autofocus autocomplete="username">
+    </div>
+
+    <div class="form-group">
+      <label for="id_password">🔒 Şifre</label>
+      <input type="password" id="id_password" name="password"
+             placeholder="Şifrenizi girin" autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="btn">Giriş Yap →</button>
+  </form>
+
+  <p class="footer-note">
+    Hesabınız yok mu? <a href="/admin/">Yönetici Paneli</a>'nden oluşturulabilir.
+  </p>
+</div>
+
+</body>
+</html>

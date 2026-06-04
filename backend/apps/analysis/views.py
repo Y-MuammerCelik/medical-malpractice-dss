@@ -122,31 +122,50 @@ class AnalyzeDocumentView(APIView):
     """
     POST /api/v1/analysis/analyze-document/
 
-    Klinik belge metnini NLP ile analiz eder.
+    Klinik belge metnini veya PDF dosyasını NLP ile analiz eder.
 
-    İstek:
-        {
-          "text": "Hasta Adı: Ali Veli. Teşhis: Pnömoni (J18.9). Yatış süresi: 15 gün...",
-          "run_rule_engine": false   // opsiyonel: true ise kural motoru da çalışır
-        }
+    İstek (JSON):
+        { "text": "Hasta Adı: ...", "run_rule_engine": false }
+
+    İstek (multipart/form-data — PDF):
+        pdf_file=<dosya>, run_rule_engine=false
 
     Yanıt:
         {
           "extracted": { icd_codes, medications, procedures, duration_days, ... },
-          "confidence": 0.85,
+          "confidence": 85.0,
           "warnings": [...],
-          "rule_engine_result": null  // run_rule_engine=true ise dolu gelir
+          "rule_engine_result": null
         }
     """
     permission_classes = [AllowAny]
+    parser_classes_override = None  # multipart için DRF parser otomatik
 
     def post(self, request):
-        text = request.data.get('text', '').strip()
         run_engine = request.data.get('run_rule_engine', False)
+        text = ''
+
+        # ── PDF Yükleme mi, Metin mi? ─────────────────────────────────────
+        pdf_file = request.FILES.get('pdf_file')
+        if pdf_file:
+            try:
+                text = self._extract_text_from_pdf(pdf_file)
+            except Exception as e:
+                return Response(
+                    {"detail": f"PDF okunamadı: {str(e)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if not text.strip():
+                return Response(
+                    {"detail": "PDF'den metin çıkarılamadı. Belge taranmış (resim) formatında olabilir."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            text = request.data.get('text', '').strip()
 
         if not text:
             return Response(
-                {"detail": "Metin boş olamaz. 'text' alanını doldurun."},
+                {"detail": "Metin veya PDF dosyası gerekli. 'text' alanını doldurun ya da 'pdf_file' yükleyin."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -161,6 +180,7 @@ class AnalyzeDocumentView(APIView):
         extracted = nlp.extract(text)
 
         response_data = {
+            "source":            "pdf" if pdf_file else "text",
             "extracted": {
                 "icd_codes":       extracted.icd_codes,
                 "matched_icd":     extracted.matched_icd,
@@ -181,7 +201,6 @@ class AnalyzeDocumentView(APIView):
 
         # ── Kural Motoru (opsiyonel) ──────────────────────────────────────
         if run_engine and extracted.matched_icd:
-            # Veritabanında bu ICD koduna ait protokol var mı?
             from apps.icd10.models import ICD10Code
             try:
                 icd_obj = ICD10Code.objects.filter(
@@ -205,8 +224,22 @@ class AnalyzeDocumentView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
     @staticmethod
+    def _extract_text_from_pdf(pdf_file) -> str:
+        """pypdf kullanarak PDF'den metin çıkarır."""
+        from pypdf import PdfReader
+        import io
+        reader = PdfReader(io.BytesIO(pdf_file.read()))
+        pages_text = []
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                pages_text.append(page_text)
+        return '\n'.join(pages_text)
+
+    @staticmethod
     def _confidence_label(conf: float) -> str:
         if conf >= 0.8: return "Yüksek"
         if conf >= 0.5: return "Orta"
         if conf >= 0.3: return "Düşük"
         return "Çok Düşük"
+

@@ -31,6 +31,9 @@
     .status-pill{display:flex;align-items:center;gap:8px;font-size:.82rem;}
     .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+    .user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:.8rem;}
+    .logout-btn{padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:600;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;cursor:pointer;transition:all .2s;}
+    .logout-btn:hover{background:rgba(239,68,68,.3);}
 
     /* ── TABS ── */
     .tabs{display:flex;gap:4px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;}
@@ -174,6 +177,23 @@
 
     /* ── DIVIDER ── */
     .section-sep{border:none;border-top:1px solid var(--border);margin:1.5rem 0;}
+
+    /* ── PDF UPLOAD ── */
+    .pdf-drop{border:2px dashed var(--border);border-radius:12px;padding:1.5rem;text-align:center;
+              cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02);margin-bottom:1rem;}
+    .pdf-drop:hover,.pdf-drop.dragover{border-color:var(--accent);background:rgba(59,130,246,.06);}
+    .pdf-drop-icon{font-size:2rem;margin-bottom:.5rem;}
+    .pdf-drop-text{font-size:.85rem;color:var(--muted);}
+    .pdf-drop-text strong{color:var(--accent);}
+    .pdf-chosen{display:flex;align-items:center;gap:8px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);
+                border-radius:8px;padding:.6rem 1rem;font-size:.82rem;margin-bottom:.75rem;display:none;}
+    .pdf-chosen .pdf-name{flex:1;}
+    .pdf-chosen .pdf-remove{cursor:pointer;color:var(--muted);font-size:1rem;}
+    .pdf-chosen .pdf-remove:hover{color:var(--red);}
+    .tab-switch{display:flex;gap:4px;margin-bottom:1rem;}
+    .input-tab{padding:5px 14px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;
+               border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);transition:all .2s;}
+    .input-tab.active{background:rgba(59,130,246,.2);border-color:var(--accent);color:var(--accent);}
   </style>
 </head>
 <body>
@@ -195,6 +215,8 @@
       <div class="dot" id="dotEl"></div>
       <span id="apiStatus">Bağlanıyor...</span>
     </div>
+    <div class="user-pill">👤 <span id="currentUser">Kullanıcı</span></div>
+    <a href="/logout/"><button class="logout-btn">🚪 Çıkış</button></a>
   </div>
 </nav>
 
@@ -268,20 +290,26 @@
       <div style="padding:1.5rem">
 
         <p style="font-size:.88rem;color:var(--muted);margin-bottom:1rem">
-          Epikriz, taburcu özeti veya klinik rapor metnini aşağıya yapıştırın.
-          Sistem ICD-10 kodunu, uygulanan ilaçları, prosedürleri ve yatış süresini otomatik olarak çıkaracak.
+          Epikriz metnini yapıştırın <strong>veya</strong> doğrudan PDF dosyasını yükleyin.
+          Sistem ICD-10 kodunu, ilaçları, prosedürleri ve yatış süresini otomatik çıkaracak.
         </p>
 
-        <!-- Örnek metinler -->
-        <div class="nlp-samples">
-          <span style="font-size:.75rem;color:var(--muted);align-self:center;margin-right:4px">Örnek yükle:</span>
-          <button class="sample-btn" onclick="loadSample('pneumonia')">🫁 Pnömoni (Uyumlu)</button>
-          <button class="sample-btn" onclick="loadSample('stemi')">❤️ STEMI (Malpraktis)</button>
-          <button class="sample-btn" onclick="loadSample('lumbar')">🦴 Disk Hernisi</button>
+        <!-- Giriş türü seçimi -->
+        <div class="tab-switch">
+          <button class="input-tab active" id="tabText" onclick="switchInput('text')">✍️ Metin Yapıştır</button>
+          <button class="input-tab" id="tabPdf" onclick="switchInput('pdf')">📄 PDF Yükle</button>
         </div>
 
-        <textarea class="nlp-area" id="nlpText"
-          placeholder="Buraya epikriz veya klinik rapor metnini yapıştırın...
+        <!-- METİN girişi -->
+        <div id="inputText">
+          <div class="nlp-samples">
+            <span style="font-size:.75rem;color:var(--muted);align-self:center;margin-right:4px">Örnek yükle:</span>
+            <button class="sample-btn" onclick="loadSample('pneumonia')">🫁 Pnömoni (Uyumlu)</button>
+            <button class="sample-btn" onclick="loadSample('stemi')">❤️ STEMI (Malpraktis)</button>
+            <button class="sample-btn" onclick="loadSample('lumbar')">🦴 Disk Hernisi</button>
+          </div>
+          <textarea class="nlp-area" id="nlpText"
+            placeholder="Buraya epikriz veya klinik rapor metnini yapıştırın...
 
 Örnek:
 Hasta Adı: Ahmet Yılmaz
@@ -292,6 +320,26 @@ Taburcu Tarihi: 18.05.2024
 Yatış Süresi: 8 gün
 Uygulanan İlaçlar: Amoksisilin-klavulanat, Azitromisin, Parasetamol
 Prosedürler: Akciğer grafisi, Kan kültürü, SpO2 monitorizasyonu"></textarea>
+        </div>
+
+        <!-- PDF girişi -->
+        <div id="inputPdf" style="display:none">
+          <div class="pdf-chosen" id="pdfChosen">
+            <span>📄</span>
+            <span class="pdf-name" id="pdfName"></span>
+            <span class="pdf-remove" onclick="removePdf()" title="Kaldır">✕</span>
+          </div>
+          <div class="pdf-drop" id="pdfDrop"
+               onclick="document.getElementById('pdfInput').click()"
+               ondragover="event.preventDefault();this.classList.add('dragover')"
+               ondragleave="this.classList.remove('dragover')"
+               ondrop="handlePdfDrop(event)">
+            <div class="pdf-drop-icon">📁</div>
+            <div class="pdf-drop-text">Buraya PDF sürükleyin veya <strong>tıklayarak seçin</strong></div>
+            <div style="font-size:.75rem;color:var(--muted);margin-top:.4rem">Yalnızca .pdf uzantılı dosyalar desteklenir</div>
+          </div>
+          <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="handlePdfSelect(event)">
+        </div>
 
         <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;align-items:center">
           <button class="btn btn-green" id="nlpBtn" onclick="analyzeDoc()">
@@ -582,28 +630,75 @@ function loadSample(key) {
 function clearNlp() {
   document.getElementById('nlpText').value = '';
   document.getElementById('nlpResult').classList.remove('show');
+  removePdf();
+}
+
+/* ─── PDF YÜKLEME ─────────────────────────────────── */
+let selectedPdfFile = null;
+
+function switchInput(type) {
+  document.getElementById('inputText').style.display = type==='text' ? 'block' : 'none';
+  document.getElementById('inputPdf').style.display  = type==='pdf'  ? 'block' : 'none';
+  document.getElementById('tabText').classList.toggle('active', type==='text');
+  document.getElementById('tabPdf').classList.toggle('active',  type==='pdf');
+}
+
+function handlePdfSelect(event) {
+  const file = event.target.files[0];
+  if (file) setPdfFile(file);
+}
+
+function handlePdfDrop(event) {
+  event.preventDefault();
+  document.getElementById('pdfDrop').classList.remove('dragover');
+  const file = event.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') setPdfFile(file);
+  else toast('Lütfen geçerli bir PDF dosyası seçin.', false);
+}
+
+function setPdfFile(file) {
+  selectedPdfFile = file;
+  document.getElementById('pdfName').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+  document.getElementById('pdfChosen').style.display = 'flex';
+  document.getElementById('pdfDrop').style.display = 'none';
+}
+
+function removePdf() {
+  selectedPdfFile = null;
+  document.getElementById('pdfInput').value = '';
+  document.getElementById('pdfChosen').style.display = 'none';
+  document.getElementById('pdfDrop').style.display = 'block';
 }
 
 async function analyzeDoc() {
-  const text = document.getElementById('nlpText').value.trim();
   const runEngine = document.getElementById('runEngine').checked;
   const btn = document.getElementById('nlpBtn');
-
-  if (!text) { toast('Lütfen metin girin.', false); return; }
+  const isPdf = document.getElementById('tabPdf').classList.contains('active');
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Analiz ediliyor...';
 
   try {
-    const res = await fetch(`${API}/analysis/analyze-document/`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({text, run_rule_engine: runEngine})
-    });
+    let res;
+    if (isPdf) {
+      if (!selectedPdfFile) { toast('Lütfen bir PDF dosyası seçin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et'; return; }
+      const formData = new FormData();
+      formData.append('pdf_file', selectedPdfFile);
+      formData.append('run_rule_engine', runEngine);
+      res = await fetch(`${API}/analysis/analyze-document/`, { method: 'POST', body: formData });
+    } else {
+      const text = document.getElementById('nlpText').value.trim();
+      if (!text) { toast('Lütfen metin girin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et'; return; }
+      res = await fetch(`${API}/analysis/analyze-document/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text, run_rule_engine: runEngine})
+      });
+    }
     const data = await res.json();
     if (!res.ok) { toast(data.detail || 'Hata oluştu.', false); return; }
     renderNlpResult(data);
-    toast('NLP analizi tamamlandı!');
+    toast(isPdf ? 'PDF analizi tamamlandı! 📄' : 'NLP analizi tamamlandı!');
   } catch(e) {
     toast('Bağlantı hatası: ' + e.message, false);
   }
