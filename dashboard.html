@@ -15,25 +15,52 @@
       --green:#10b981;--yellow:#f59e0b;--orange:#f97316;--red:#ef4444;
     }
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
     /* ── NAV ── */
     nav{background:rgba(17,24,39,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
         padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;
         position:sticky;top:0;z-index:100;}
-    .nav-brand{display:flex;align-items:center;gap:12px;}
+    .nav-brand{display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none;transition:opacity .2s;}
+    .nav-brand:hover{opacity:.85;}
     .nav-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
               display:flex;align-items:center;justify-content:center;font-size:20px;}
     .nav-title{font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#60a5fa,#a78bfa);
                -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
     .nav-sub{font-size:.72rem;color:var(--muted);}
-    .nav-right{display:flex;align-items:center;gap:1rem;}
+    .nav-right{display:flex;align-items:center;gap:.8rem;}
     .status-pill{display:flex;align-items:center;gap:8px;font-size:.82rem;}
     .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
     .user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:.8rem;}
     .logout-btn{padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:600;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;cursor:pointer;transition:all .2s;}
     .logout-btn:hover{background:rgba(239,68,68,.3);}
+    .clock-pill{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+    /* ── NOTIFICATION BELL ── */
+    .notif-wrap{position:relative;}
+    .notif-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;
+               display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;transition:all .2s;position:relative;}
+    .notif-btn:hover{background:rgba(255,255,255,.12);}
+    .notif-badge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;
+                 background:var(--red);color:#fff;font-size:.65rem;font-weight:700;display:flex;align-items:center;
+                 justify-content:center;display:none;animation:popIn .3s ease;}
+    @keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+    .notif-dropdown{position:absolute;top:44px;right:0;width:320px;background:var(--bg2);border:1px solid var(--border);
+                    border-radius:12px;box-shadow:0 15px 40px rgba(0,0,0,.5);display:none;z-index:200;overflow:hidden;}
+    .notif-dropdown.show{display:block;animation:fadeDown .2s ease;}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    .notif-header{padding:.8rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .notif-header span{font-size:.85rem;font-weight:600;}
+    .notif-clear{font-size:.72rem;color:var(--accent);cursor:pointer;border:none;background:none;}
+    .notif-list{max-height:280px;overflow-y:auto;}
+    .notif-item{padding:.7rem 1rem;border-bottom:1px solid var(--border);font-size:.8rem;display:flex;gap:8px;align-items:start;}
+    .notif-item:last-child{border-bottom:none;}
+    .notif-item .ni-icon{flex-shrink:0;font-size:.9rem;}
+    .notif-item .ni-text{flex:1;line-height:1.4;}
+    .notif-item .ni-time{font-size:.68rem;color:var(--muted);white-space:nowrap;}
+    .notif-empty{padding:2rem;text-align:center;color:var(--muted);font-size:.82rem;}
 
     /* ── TABS ── */
     .tabs{display:flex;gap:4px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;}
@@ -42,8 +69,14 @@
     .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
     .tab:hover:not(.active){color:var(--text);}
 
+    /* ── TOOLTIP ── */
+    [data-tooltip]{position:relative;}
+    [data-tooltip]:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+      background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:.72rem;
+      white-space:nowrap;z-index:300;animation:fadeDown .15s ease;pointer-events:none;}
+
     /* ── LAYOUT ── */
-    .container{max-width:1400px;margin:0 auto;padding:2rem;}
+    .container{max-width:1400px;margin:0 auto;padding:2rem;flex:1;}
     .page{display:none;}.page.active{display:block;}
 
     /* ── STAT CARDS ── */
@@ -58,7 +91,7 @@
     .stat.orange::before{background:linear-gradient(90deg,var(--orange),var(--yellow));}
     .stat.red::before{background:linear-gradient(90deg,var(--red),#f43f5e);}
     .stat-icon{font-size:1.8rem;margin-bottom:.6rem;}
-    .stat-num{font-size:2.4rem;font-weight:800;line-height:1;}
+    .stat-num{font-size:2.4rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
     .stat-label{color:var(--muted);font-size:.82rem;margin-top:.25rem;}
 
     /* ── CARD ── */
@@ -79,6 +112,8 @@
     .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
     .btn-green{background:linear-gradient(135deg,var(--green),#059669);}
     .btn-green:hover{box-shadow:0 4px 15px rgba(16,185,129,.4);}
+    .btn-outline{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);}
+    .btn-outline:hover{background:rgba(255,255,255,.1);box-shadow:none;}
 
     /* ── PATIENT ITEM ── */
     .p-item{padding:.9rem 1.5rem;border-bottom:1px solid var(--border);
@@ -194,31 +229,106 @@
     .input-tab{padding:5px 14px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;
                border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);transition:all .2s;}
     .input-tab.active{background:rgba(59,130,246,.2);border-color:var(--accent);color:var(--accent);}
+
+    /* ── HISTORY TABLE ── */
+    .history-table{width:100%;border-collapse:collapse;}
+    .history-table th{text-align:left;padding:.8rem 1rem;font-size:.75rem;color:var(--muted);text-transform:uppercase;
+                      letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:600;}
+    .history-table td{padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.84rem;}
+    .history-table tr:hover td{background:rgba(255,255,255,.02);}
+    .history-table tr:last-child td{border-bottom:none;}
+
+    /* ── FOOTER ── */
+    .site-footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem 2rem;margin-top:auto;}
+    .footer-inner{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+    .footer-brand{display:flex;align-items:center;gap:10px;}
+    .footer-logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+                 display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .footer-text{font-size:.78rem;color:var(--muted);line-height:1.6;}
+    .footer-text strong{color:var(--text);font-weight:600;}
+    .footer-links{display:flex;gap:1.5rem;}
+    .footer-links a{font-size:.78rem;color:var(--muted);text-decoration:none;transition:color .2s;}
+    .footer-links a:hover{color:var(--accent);}
+    .footer-copy{font-size:.7rem;color:var(--muted);opacity:.6;}
+
+    /* ── KEYBOARD SHORTCUT HINT ── */
+    .kbd{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.68rem;font-family:'Courier New',monospace;
+         background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--muted);margin-left:6px;}
+
+    /* ── PRINT ── */
+    @media print{
+      nav,.tabs,.notif-wrap,.logout-btn,.user-pill,.clock-pill,.status-pill,.btn,.sample-btn,
+      .nlp-samples,.tab-switch,#inputPdf,.site-footer,#toast{display:none!important;}
+      body{background:#fff!important;color:#000!important;}
+      .card,.result-card,.rule-box{background:#f9f9f9!important;border-color:#ddd!important;color:#000!important;}
+      .stat{background:#f9f9f9!important;border-color:#ddd!important;}
+      .stat-num,.result-card-val,.p-name{color:#000!important;}
+      .stat-label,.result-card-title,.p-meta,.dev-meta{color:#555!important;}
+      .tag,.badge{border-color:#aaa!important;color:#333!important;background:#eee!important;}
+    }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px){
+      nav{padding:0 1rem;gap:.5rem;}
+      .nav-right{gap:.4rem;flex-wrap:wrap;}
+      .tabs{display:none;}
+      .mobile-tabs{display:flex!important;gap:4px;padding:1rem 1rem 0;overflow-x:auto;}
+      .clock-pill{display:none;}
+      .container{padding:1rem;}
+      .stats{grid-template-columns:repeat(2,1fr);}
+      .two-col{grid-template-columns:1fr;}
+      .result-grid{grid-template-columns:1fr 1fr;}
+      .footer-inner{flex-direction:column;text-align:center;}
+    }
+    @media(min-width:769px){.mobile-tabs{display:none!important;}}
   </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-brand">
+<nav id="topNav">
+  <a class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'});switchPage('dashboard')" title="Ana sayfaya dön">
     <div class="nav-logo">🏥</div>
     <div>
       <div class="nav-title">MalpraktisDSS</div>
       <div class="nav-sub">Kural Tabanlı Karar Destek Sistemi</div>
     </div>
-  </div>
+  </a>
   <div class="nav-right">
     <div class="tabs">
-      <button class="tab active" onclick="switchPage('dashboard')">📊 Dashboard</button>
-      <button class="tab" onclick="switchPage('nlp')">🔬 Belge Analizi</button>
+      <button class="tab active" onclick="switchPage('dashboard')" data-tooltip="Ana panel">📊 Dashboard</button>
+      <button class="tab" onclick="switchPage('nlp')" data-tooltip="Belge analizi (Ctrl+N)">🔬 Belge Analizi</button>
+      <button class="tab" onclick="switchPage('history')" data-tooltip="Geçmiş analizler">📋 Geçmiş</button>
     </div>
+    <div class="clock-pill" id="liveClock">--:--:--</div>
     <div class="status-pill">
       <div class="dot" id="dotEl"></div>
       <span id="apiStatus">Bağlanıyor...</span>
     </div>
-    <div class="user-pill">👤 <span id="currentUser">Kullanıcı</span></div>
-    <a href="/logout/"><button class="logout-btn">🚪 Çıkış</button></a>
+    <div class="notif-wrap">
+      <div class="notif-btn" onclick="toggleNotif()" data-tooltip="Bildirimler">
+        🔔<span class="notif-badge" id="notifBadge">0</span>
+      </div>
+      <div class="notif-dropdown" id="notifDropdown">
+        <div class="notif-header">
+          <span>🔔 Bildirimler</span>
+          <button class="notif-clear" onclick="clearNotifs()">Tümünü Temizle</button>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty">Henüz bildirim yok</div>
+        </div>
+      </div>
+    </div>
+    <div class="user-pill">👋 <span id="currentUser">Hoş geldin</span></div>
+    <a href="/logout/"><button class="logout-btn" data-tooltip="Oturumu kapat">🚪 Çıkış</button></a>
   </div>
 </nav>
+
+<!-- Mobil sekmeler -->
+<div class="mobile-tabs">
+  <button class="tab active" onclick="switchPage('dashboard')">📊 Dashboard</button>
+  <button class="tab" onclick="switchPage('nlp')">🔬 Analiz</button>
+  <button class="tab" onclick="switchPage('history')">📋 Geçmiş</button>
+</div>
 
 <div class="container">
 
@@ -228,19 +338,19 @@
   <div class="page active" id="page-dashboard">
 
     <div class="stats">
-      <div class="stat blue"><div class="stat-icon">👥</div><div class="stat-num" id="sTotal">—</div><div class="stat-label">Toplam Değerlendirme</div></div>
-      <div class="stat green"><div class="stat-icon">✅</div><div class="stat-num" id="sNone">—</div><div class="stat-label">Risk Yok</div></div>
-      <div class="stat yellow"><div class="stat-icon">⚠️</div><div class="stat-num" id="sMod">—</div><div class="stat-label">Orta Risk</div></div>
-      <div class="stat orange"><div class="stat-icon">🟠</div><div class="stat-num" id="sHigh">—</div><div class="stat-label">Yüksek Risk</div></div>
-      <div class="stat red"><div class="stat-icon">🚨</div><div class="stat-num" id="sConf">—</div><div class="stat-label">Malpraktis Tespit</div></div>
-      <div class="stat blue"><div class="stat-icon">🔍</div><div class="stat-num" id="sDev">—</div><div class="stat-label">Toplam Sapma</div></div>
+      <div class="stat blue"><div class="stat-icon">👥</div><div class="stat-num" id="sTotal" data-target="0">—</div><div class="stat-label">Toplam Değerlendirme</div></div>
+      <div class="stat green"><div class="stat-icon">✅</div><div class="stat-num" id="sNone" data-target="0">—</div><div class="stat-label">Risk Yok</div></div>
+      <div class="stat yellow"><div class="stat-icon">⚠️</div><div class="stat-num" id="sMod" data-target="0">—</div><div class="stat-label">Orta Risk</div></div>
+      <div class="stat orange"><div class="stat-icon">🟠</div><div class="stat-num" id="sHigh" data-target="0">—</div><div class="stat-label">Yüksek Risk</div></div>
+      <div class="stat red"><div class="stat-icon">🚨</div><div class="stat-num" id="sConf" data-target="0">—</div><div class="stat-label">Malpraktis Tespit</div></div>
+      <div class="stat blue"><div class="stat-icon">🔍</div><div class="stat-num" id="sDev" data-target="0">—</div><div class="stat-label">Toplam Sapma</div></div>
     </div>
 
     <div class="two-col">
       <div class="card" style="margin-bottom:0">
         <div class="card-head">
           <span class="card-title">🧑‍⚕️ Hasta Risk Skorları</span>
-          <button class="btn" id="runBtn" onclick="runAll()">▶ Tümünü Analiz Et</button>
+          <button class="btn" id="runBtn" onclick="runAll()" data-tooltip="Tüm yatışları analiz et">▶ Tümünü Analiz Et</button>
         </div>
         <div id="patientList"><div class="loading"><div class="spinner"></div></div></div>
       </div>
@@ -342,14 +452,14 @@ Prosedürler: Akciğer grafisi, Kan kültürü, SpO2 monitorizasyonu"></textarea
         </div>
 
         <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;align-items:center">
-          <button class="btn btn-green" id="nlpBtn" onclick="analyzeDoc()">
-            🔬 Analiz Et
+          <button class="btn btn-green" id="nlpBtn" onclick="analyzeDoc()" data-tooltip="Ctrl+Enter ile hızlı analiz">
+            🔬 Analiz Et <span class="kbd">Ctrl+↵</span>
           </button>
           <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;cursor:pointer">
             <input type="checkbox" id="runEngine" style="width:16px;height:16px;accent-color:var(--accent)"/>
             Protokol kontrolü de yap
           </label>
-          <button class="btn" style="background:rgba(255,255,255,.06);margin-left:auto" onclick="clearNlp()">
+          <button class="btn btn-outline" style="margin-left:auto" onclick="clearNlp()">
             🗑 Temizle
           </button>
         </div>
@@ -357,6 +467,11 @@ Prosedürler: Akciğer grafisi, Kan kültürü, SpO2 monitorizasyonu"></textarea
         <!-- SONUÇ ALANI -->
         <div class="nlp-result" id="nlpResult">
           <hr class="section-sep"/>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <span style="font-size:.9rem;font-weight:600">📋 Analiz Sonuçları</span>
+            <button class="btn btn-outline" onclick="printResult()" data-tooltip="Sonuçları yazdır">🖨 Yazdır</button>
+          </div>
 
           <!-- Güven & ICD -->
           <div class="result-grid">
@@ -406,19 +521,124 @@ Prosedürler: Akciğer grafisi, Kan kültürü, SpO2 monitorizasyonu"></textarea
 
   </div><!-- /page-nlp -->
 
+
+  <!-- ══════════════════════════════════════════════════════════
+       SAYFA 3: ANALİZ GEÇMİŞİ
+  ══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-history">
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">📋 Analiz Geçmişi</span>
+        <button class="btn btn-outline" onclick="clearHistory()">🗑 Geçmişi Temizle</button>
+      </div>
+      <div id="historyContent">
+        <div class="empty">📭 Henüz analiz geçmişi bulunmuyor.<br>Belge Analizi sekmesinden ilk analizinizi yapın.</div>
+      </div>
+    </div>
+
+  </div><!-- /page-history -->
+
 </div><!-- /container -->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">🏥</div>
+      <div class="footer-text">
+        <strong>MalpraktisDSS</strong> v2.0<br>
+        Tıbbi Malpraktis Tespit ve Karar Destek Sistemi
+      </div>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/Y-MuammerCelik/medical-malpractice-dss" target="_blank">📂 GitHub</a>
+      <a href="/admin/" target="_blank">⚙️ Admin Panel</a>
+      <a href="/api/v1/" target="_blank">🔗 API</a>
+    </div>
+    <div class="footer-text" style="text-align:right">
+      <strong>Muammer ÇELİK</strong> — 22430070028<br>
+      Bilişim Sistemleri ve Teknolojileri
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:1rem">
+    <span class="footer-copy">© 2024-2026 MalpraktisDSS. Akademik ve eğitim amaçlıdır.</span>
+  </div>
+</footer>
 
 <div id="toast"></div>
 
 <script>
 const API = '/api/v1';
 
+/* ─── CANLI SAAT ──────────────────────────────────────── */
+function updateClock() {
+  const now = new Date();
+  const opts = {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false};
+  const dateOpts = {day:'2-digit',month:'short',year:'numeric'};
+  document.getElementById('liveClock').textContent =
+    now.toLocaleDateString('tr-TR',dateOpts) + ' · ' + now.toLocaleTimeString('tr-TR',opts);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ─── BİLDİRİM SİSTEMİ ───────────────────────────────── */
+let notifications = JSON.parse(localStorage.getItem('malpDssNotifs') || '[]');
+
+function addNotification(icon, text) {
+  const n = {icon, text, time: new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})};
+  notifications.unshift(n);
+  if (notifications.length > 20) notifications.pop();
+  localStorage.setItem('malpDssNotifs', JSON.stringify(notifications));
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const el = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadge');
+  if (!notifications.length) {
+    el.innerHTML = '<div class="notif-empty">Henüz bildirim yok</div>';
+    badge.style.display = 'none';
+    return;
+  }
+  badge.textContent = notifications.length;
+  badge.style.display = 'flex';
+  el.innerHTML = notifications.map(n =>
+    `<div class="notif-item"><span class="ni-icon">${n.icon}</span><span class="ni-text">${n.text}</span><span class="ni-time">${n.time}</span></div>`
+  ).join('');
+}
+
+function toggleNotif() {
+  document.getElementById('notifDropdown').classList.toggle('show');
+}
+
+function clearNotifs() {
+  notifications = [];
+  localStorage.removeItem('malpDssNotifs');
+  renderNotifications();
+}
+
+// Dışarı tıklayınca kapat
+document.addEventListener('click', e => {
+  if (!e.target.closest('.notif-wrap')) document.getElementById('notifDropdown').classList.remove('show');
+});
+
+renderNotifications();
+
 /* ─── SAYFA GEÇİŞİ ────────────────────────────────────── */
 function switchPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
-  event.target.classList.add('active');
+  // Doğru tab'ı aktifle
+  document.querySelectorAll('.tab').forEach(t => {
+    const map = {'📊':'dashboard','🔬':'nlp','📋':'history'};
+    const txt = t.textContent.trim();
+    for (const [emoji, pg] of Object.entries(map)) {
+      if (txt.startsWith(emoji) && pg === name) t.classList.add('active');
+    }
+  });
+  if (name === 'history') renderHistory();
 }
 
 /* ─── YARDIMCILAR ─────────────────────────────────────── */
@@ -438,12 +658,27 @@ function toast(msg, ok=true) {
   t.style.borderColor = ok?'rgba(16,185,129,.4)':'rgba(239,68,68,.4)';
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 3500);
+  addNotification(ok?'✅':'❌', msg);
 }
 
 async function get(url) {
   const r = await fetch(url + (url.includes('?')?'&':'?') + 'format=json');
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
+}
+
+/* ─── ANİMASYONLU SAYAÇ ──────────────────────────────── */
+function countUp(el, target, duration=800) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    el.textContent = Math.round(start + (target - start) * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
 }
 
 /* ─── DASHBOARD YÜKLE ─────────────────────────────────── */
@@ -476,12 +711,8 @@ async function load() {
 function renderStats(ass, devs) {
   const c={NONE:0,LOW:0,MODERATE:0,HIGH:0,CONFIRMED:0};
   ass.forEach(a=>{if(c[a.risk_level]!==undefined)c[a.risk_level]++;});
-  document.getElementById('sTotal').textContent = ass.length;
-  document.getElementById('sNone').textContent  = c.NONE;
-  document.getElementById('sMod').textContent   = c.LOW+c.MODERATE;
-  document.getElementById('sHigh').textContent  = c.HIGH;
-  document.getElementById('sConf').textContent  = c.CONFIRMED;
-  document.getElementById('sDev').textContent   = devs.length;
+  const vals = {sTotal:ass.length, sNone:c.NONE, sMod:c.LOW+c.MODERATE, sHigh:c.HIGH, sConf:c.CONFIRMED, sDev:devs.length};
+  Object.entries(vals).forEach(([id,v]) => countUp(document.getElementById(id), v));
 }
 
 function renderPatients(assessments) {
@@ -681,14 +912,14 @@ async function analyzeDoc() {
   try {
     let res;
     if (isPdf) {
-      if (!selectedPdfFile) { toast('Lütfen bir PDF dosyası seçin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et'; return; }
+      if (!selectedPdfFile) { toast('Lütfen bir PDF dosyası seçin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et <span class="kbd">Ctrl+↵</span>'; return; }
       const formData = new FormData();
       formData.append('pdf_file', selectedPdfFile);
       formData.append('run_rule_engine', runEngine);
       res = await fetch(`${API}/analysis/analyze-document/`, { method: 'POST', body: formData });
     } else {
       const text = document.getElementById('nlpText').value.trim();
-      if (!text) { toast('Lütfen metin girin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et'; return; }
+      if (!text) { toast('Lütfen metin girin.', false); btn.disabled=false; btn.innerHTML='🔬 Analiz Et <span class="kbd">Ctrl+↵</span>'; return; }
       res = await fetch(`${API}/analysis/analyze-document/`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -698,13 +929,14 @@ async function analyzeDoc() {
     const data = await res.json();
     if (!res.ok) { toast(data.detail || 'Hata oluştu.', false); return; }
     renderNlpResult(data);
+    saveToHistory(data, isPdf);
     toast(isPdf ? 'PDF analizi tamamlandı! 📄' : 'NLP analizi tamamlandı!');
   } catch(e) {
     toast('Bağlantı hatası: ' + e.message, false);
   }
 
   btn.disabled = false;
-  btn.innerHTML = '🔬 Analiz Et';
+  btn.innerHTML = '🔬 Analiz Et <span class="kbd">Ctrl+↵</span>';
 }
 
 function renderNlpResult(data) {
@@ -786,6 +1018,78 @@ function renderNlpResult(data) {
     ruleBox.style.display = 'none';
   }
 }
+
+/* ─── YAZDIR ──────────────────────────────────────────── */
+function printResult() {
+  window.print();
+}
+
+/* ─── ANALİZ GEÇMİŞİ ─────────────────────────────────── */
+function saveToHistory(data, isPdf) {
+  let history = JSON.parse(localStorage.getItem('malpDssHistory') || '[]');
+  const ex = data.extracted;
+  history.unshift({
+    date: new Date().toLocaleString('tr-TR'),
+    source: isPdf ? '📄 PDF' : '✍️ Metin',
+    icd: ex.matched_icd || (ex.icd_codes.length ? ex.icd_codes[0] : '—'),
+    diagnosis: ex.diagnosis_text || '—',
+    patient: ex.patient_name || '—',
+    confidence: data.confidence,
+    label: data.confidence_label,
+    warnings: data.warnings.length
+  });
+  if (history.length > 50) history.pop();
+  localStorage.setItem('malpDssHistory', JSON.stringify(history));
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem('malpDssHistory') || '[]');
+  const el = document.getElementById('historyContent');
+  if (!history.length) {
+    el.innerHTML = '<div class="empty">📭 Henüz analiz geçmişi bulunmuyor.<br>Belge Analizi sekmesinden ilk analizinizi yapın.</div>';
+    return;
+  }
+  el.innerHTML = `<table class="history-table">
+    <thead><tr>
+      <th>Tarih</th><th>Kaynak</th><th>ICD-10</th><th>Tanı</th><th>Hasta</th><th>Güven</th><th>Uyarı</th>
+    </tr></thead>
+    <tbody>${history.map(h => {
+      const confColor = h.confidence>=70?'#10b981':h.confidence>=40?'#f59e0b':'#ef4444';
+      return `<tr>
+        <td style="white-space:nowrap;font-size:.78rem;color:var(--muted)">${h.date}</td>
+        <td>${h.source}</td>
+        <td><span class="badge b-purple">${h.icd}</span></td>
+        <td>${h.diagnosis}</td>
+        <td>${h.patient}</td>
+        <td><span style="color:${confColor};font-weight:700">${h.confidence}%</span> <span style="font-size:.72rem;color:var(--muted)">${h.label}</span></td>
+        <td>${h.warnings > 0 ? `<span class="badge b-confirmed">${h.warnings} uyarı</span>` : '<span style="color:var(--green)">✓</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function clearHistory() {
+  localStorage.removeItem('malpDssHistory');
+  renderHistory();
+  toast('Analiz geçmişi temizlendi.');
+}
+
+/* ─── KLAVYE KISAYOLLARI ──────────────────────────────── */
+document.addEventListener('keydown', e => {
+  // Ctrl+Enter → Analiz Et
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    const nlpPage = document.getElementById('page-nlp');
+    if (nlpPage.classList.contains('active')) {
+      analyzeDoc();
+    }
+  }
+  // Ctrl+N → NLP sayfasına geç
+  if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    switchPage('nlp');
+  }
+});
 
 /* boot */
 load();
